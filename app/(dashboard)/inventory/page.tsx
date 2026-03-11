@@ -1,9 +1,9 @@
 "use client";
 
-import { DataTable } from "@/components/shared/data-table";
 import { BulkStockUpdate } from "@/components/inventory/bulk-stock-update";
 import { LowStockConfig } from "@/components/inventory/low-stock-config";
 import { StockMovementHistory } from "@/components/inventory/stock-movement-history";
+import { DataTable } from "@/components/shared/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockInventory } from "@/lib/mock/inventory";
 import type { InventoryItem } from "@/types";
@@ -26,7 +26,7 @@ export default function InventoryPage() {
               ? "low_stock"
               : "in_stock";
         return { ...item, currentStock: newStock, status };
-      })
+      }),
     );
   };
 
@@ -41,7 +41,7 @@ export default function InventoryPage() {
               ? "low_stock"
               : "in_stock";
         return { ...item, lowStockThreshold: threshold, status };
-      })
+      }),
     );
   };
 
@@ -54,7 +54,7 @@ export default function InventoryPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue="overview" className="flex-col">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="bulk-update">Bulk Update</TabsTrigger>

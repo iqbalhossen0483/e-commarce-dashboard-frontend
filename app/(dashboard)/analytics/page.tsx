@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="sales">
+      <Tabs defaultValue="sales" className="flex-col">
         <TabsList>
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>

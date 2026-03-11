@@ -1,10 +1,17 @@
 "use client";
 
 import { StatusBadge } from "@/components/shared/status-badge";
-import type { Review } from "@/types";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { Review, ReviewStatus } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Star } from "lucide-react";
+import { Check, MoreHorizontal, Star, X } from "lucide-react";
 import Link from "next/link";
 
 function StarRating({ rating }: { rating: number }) {
@@ -24,7 +31,9 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export const reviewColumns: ColumnDef<Review>[] = [
+export const createReviewColumns = (
+  onStatusChange: (id: string, status: ReviewStatus) => void
+): ColumnDef<Review>[] => [
   {
     accessorKey: "productName",
     header: "Product",
@@ -75,5 +84,40 @@ export const reviewColumns: ColumnDef<Review>[] = [
     header: "Date",
     cell: ({ row }) =>
       format(new Date(row.original.createdAt), "MMM d, yyyy"),
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const { id, status } = row.original;
+      if (status !== "pending") return null;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={buttonVariants({
+              variant: "ghost",
+              size: "icon",
+              className: "h-8 w-8",
+            })}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onStatusChange(id, "approved")}>
+              <Check className="mr-2 h-4 w-4" />
+              Approve
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onStatusChange(id, "rejected")}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reject
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];

@@ -2,9 +2,24 @@
 
 import { DataTable } from "@/components/shared/data-table";
 import { mockReviews } from "@/lib/mock/reviews";
-import { reviewColumns } from "./columns";
+import type { Review, ReviewStatus } from "@/types";
+import { useCallback, useMemo, useState } from "react";
+import { createReviewColumns } from "./columns";
 
 export default function ReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>(mockReviews);
+
+  const handleStatusChange = useCallback((id: string, status: ReviewStatus) => {
+    setReviews((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status } : r))
+    );
+  }, []);
+
+  const columns = useMemo(
+    () => createReviewColumns(handleStatusChange),
+    [handleStatusChange]
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -15,8 +30,8 @@ export default function ReviewsPage() {
       </div>
 
       <DataTable
-        columns={reviewColumns}
-        data={mockReviews}
+        columns={columns}
+        data={reviews}
         searchKey="productName"
         searchPlaceholder="Search by product..."
         facetedFilters={[

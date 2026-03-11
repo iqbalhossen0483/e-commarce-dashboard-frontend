@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useShippingStore } from "@/stores/shipping-store";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -22,6 +30,7 @@ const initialRates: TaxRate[] = [
 ];
 
 export default function TaxSettingsPage() {
+  const { zones } = useShippingStore();
   const [taxIncluded, setTaxIncluded] = useState(false);
   const [rates, setRates] = useState(initialRates);
 
@@ -104,12 +113,23 @@ export default function TaxSettingsPage() {
                 value={rate.name}
                 onChange={(e) => updateRate(rate.id, "name", e.target.value)}
               />
-              <Input
-                className="flex-1"
-                placeholder="Region"
+              <Select
                 value={rate.region}
-                onChange={(e) => updateRate(rate.id, "region", e.target.value)}
-              />
+                onValueChange={(v) => v && updateRate(rate.id, "region", v)}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {zones
+                    .filter((z) => z.regions.trim() !== "")
+                    .map((zone) => (
+                      <SelectItem key={zone.id} value={zone.regions}>
+                        {zone.regions}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
               <div className="flex items-center gap-1">
                 <Input
                   className="w-20"

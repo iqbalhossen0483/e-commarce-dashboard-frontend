@@ -4,24 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Save, Trash2 } from "lucide-react";
+import type { ShippingZone } from "@/lib/mock/shipping-zones";
+import { useShippingStore } from "@/stores/shipping-store";
+import { Check, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-interface ShippingZone {
-  id: string;
-  name: string;
-  regions: string;
-  flatRate: string;
-  freeAbove: string;
-}
-
-const initialZones: ShippingZone[] = [
-  { id: "z1", name: "Domestic", regions: "United States", flatRate: "5.99", freeAbove: "50" },
-  { id: "z2", name: "International", regions: "Rest of World", flatRate: "14.99", freeAbove: "100" },
-];
-
 export default function ShippingSettingsPage() {
-  const [zones, setZones] = useState(initialZones);
+  const { zones: savedZones, setZones: saveZones } = useShippingStore();
+  const [zones, setZones] = useState<ShippingZone[]>(savedZones);
+  const [saved, setSaved] = useState(false);
 
   const addZone = () => {
     setZones((prev) => [
@@ -38,6 +29,12 @@ export default function ShippingSettingsPage() {
 
   const removeZone = (id: string) => {
     setZones((prev) => prev.filter((z) => z.id !== id));
+  };
+
+  const handleSave = () => {
+    saveZones(zones);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -116,8 +113,14 @@ export default function ShippingSettingsPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
-        <Button>
+      <div className="flex items-center justify-end gap-3">
+        {saved && (
+          <span className="flex items-center gap-1 text-sm text-success">
+            <Check className="h-4 w-4" />
+            Saved
+          </span>
+        )}
+        <Button onClick={handleSave}>
           <Save className="mr-1.5 h-4 w-4" />
           Save Changes
         </Button>

@@ -25,8 +25,9 @@ import { getInitials, cn } from "@/lib/utils";
 import { mockActivityFeed } from "@/lib/mock/analytics";
 import type { ActivityItem } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { SearchCommand } from "@/components/shared/search-command";
 
 const typeIcon = {
   order: ShoppingCart,
@@ -46,6 +47,19 @@ export function Header() {
   const { user, logout } = useAuthStore();
   const [notifications, setNotifications] = useState<ActivityItem[]>(mockActivityFeed);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Global Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   const unreadCount = notifications.length - readIds.size;
 
@@ -67,10 +81,16 @@ export function Header() {
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
         {/* Search trigger */}
-        <Button variant="ghost" size="icon" className="h-9 w-9">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setSearchOpen(true)}
+        >
           <Search className="h-4 w-4" />
           <span className="sr-only">Search</span>
         </Button>
+        <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
 
         {/* Notifications */}
         <Popover>

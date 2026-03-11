@@ -167,7 +167,7 @@ export interface Review {
 
 // Discounts
 export type DiscountType = "percentage" | "fixed_amount" | "free_shipping";
-export type DiscountStatus = "active" | "scheduled" | "expired";
+export type DiscountStatus = "active" | "scheduled" | "paused" | "expired";
 
 export interface Discount {
   id: string;

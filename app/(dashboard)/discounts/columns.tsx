@@ -2,9 +2,17 @@
 
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
-import type { Discount } from "@/types";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { Discount, DiscountStatus } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { Ban, MoreHorizontal, Pause, Play } from "lucide-react";
 
 function formatValue(discount: Discount) {
   switch (discount.type) {
@@ -17,7 +25,9 @@ function formatValue(discount: Discount) {
   }
 }
 
-export const discountColumns: ColumnDef<Discount>[] = [
+export const createDiscountColumns = (
+  onStatusChange: (id: string, status: DiscountStatus) => void
+): ColumnDef<Discount>[] => [
   {
     accessorKey: "code",
     header: "Code",
@@ -70,5 +80,48 @@ export const discountColumns: ColumnDef<Discount>[] = [
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const { id, status } = row.original;
+      if (status === "expired") return null;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={buttonVariants({
+              variant: "ghost",
+              size: "icon",
+              className: "h-8 w-8",
+            })}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {(status === "active" || status === "scheduled") && (
+              <DropdownMenuItem onClick={() => onStatusChange(id, "paused")}>
+                <Pause className="mr-2 h-4 w-4" />
+                Pause
+              </DropdownMenuItem>
+            )}
+            {status === "paused" && (
+              <DropdownMenuItem onClick={() => onStatusChange(id, "active")}>
+                <Play className="mr-2 h-4 w-4" />
+                Resume
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onStatusChange(id, "expired")}
+            >
+              <Ban className="mr-2 h-4 w-4" />
+              Stop
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];

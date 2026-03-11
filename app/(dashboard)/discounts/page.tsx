@@ -3,11 +3,26 @@
 import { DataTable } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
 import { mockDiscounts } from "@/lib/mock/discounts";
+import type { Discount, DiscountStatus } from "@/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { discountColumns } from "./columns";
+import { useCallback, useMemo, useState } from "react";
+import { createDiscountColumns } from "./columns";
 
 export default function DiscountsPage() {
+  const [discounts, setDiscounts] = useState<Discount[]>(mockDiscounts);
+
+  const handleStatusChange = useCallback((id: string, status: DiscountStatus) => {
+    setDiscounts((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, status } : d))
+    );
+  }, []);
+
+  const columns = useMemo(
+    () => createDiscountColumns(handleStatusChange),
+    [handleStatusChange]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -26,8 +41,8 @@ export default function DiscountsPage() {
       </div>
 
       <DataTable
-        columns={discountColumns}
-        data={mockDiscounts}
+        columns={columns}
+        data={discounts}
         searchKey="code"
         searchPlaceholder="Search discount codes..."
         facetedFilters={[
@@ -37,6 +52,7 @@ export default function DiscountsPage() {
             options: [
               { label: "Active", value: "active" },
               { label: "Scheduled", value: "scheduled" },
+              { label: "Paused", value: "paused" },
               { label: "Expired", value: "expired" },
             ],
           },

@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -21,7 +22,7 @@ export function Header() {
   const { user, logout } = useAuthStore();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-background px-4 md:px-6">
+    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 md:px-6">
       {/* Left: Breadcrumbs */}
       <div className="flex items-center gap-4 md:pl-0 pl-10">
         <Breadcrumbs />
@@ -58,16 +59,18 @@ export function Header() {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">
-                  {user?.name || "Admin User"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.email || "admin@example.com"}
-                </p>
-              </div>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">
+                    {user?.name || "Admin User"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.email || "admin@example.com"}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />

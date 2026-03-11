@@ -23,7 +23,7 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
       {/* Logo */}
       <div
         className={cn(
-          "flex h-14 items-center border-b px-4",
+          "flex h-14 items-center border-b border-border px-4",
           collapsed && "justify-center px-2"
         )}
       >
@@ -102,14 +102,14 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300",
+          "hidden md:flex flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-300",
           sidebarCollapsed ? "w-16" : "w-64"
         )}
       >
         <SidebarContent collapsed={sidebarCollapsed} />
 
         {/* Collapse toggle */}
-        <div className="border-t p-2">
+        <div className="border-t border-border p-2">
           <Button
             variant="ghost"
             size="icon"

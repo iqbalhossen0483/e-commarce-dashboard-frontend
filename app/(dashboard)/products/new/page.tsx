@@ -1,23 +1,23 @@
 "use client";
 
 import { ProductFormBasic } from "@/components/products/product-form-basic";
-import { ProductFormPricing } from "@/components/products/product-form-pricing";
-import { ProductFormOrganization } from "@/components/products/product-form-organization";
-import { ProductFormMedia } from "@/components/products/product-form-media";
-import { ProductFormVariants } from "@/components/products/product-form-variants";
 import { ProductFormInventory } from "@/components/products/product-form-inventory";
+import { ProductFormMedia } from "@/components/products/product-form-media";
+import { ProductFormOrganization } from "@/components/products/product-form-organization";
+import { ProductFormPricing } from "@/components/products/product-form-pricing";
 import { ProductFormSEO } from "@/components/products/product-form-seo";
+import { ProductFormVariants } from "@/components/products/product-form-variants";
 import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  productSchema,
   productDefaultValues,
+  productSchema,
   type ProductFormValues,
 } from "@/validators/product";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 export default function ProductCreatePage() {
   const router = useRouter();
@@ -38,7 +38,12 @@ export default function ProductCreatePage() {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/products">
-            <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>

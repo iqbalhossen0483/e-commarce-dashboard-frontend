@@ -10,8 +10,16 @@ const variantSchema = z.object({
 });
 
 const seoSchema = z.object({
-  metaTitle: z.string().max(70, "Meta title should be under 70 characters").optional().or(z.literal("")),
-  metaDescription: z.string().max(160, "Meta description should be under 160 characters").optional().or(z.literal("")),
+  metaTitle: z
+    .string()
+    .max(70, "Meta title should be under 70 characters")
+    .optional()
+    .or(z.literal("")),
+  metaDescription: z
+    .string()
+    .max(160, "Meta description should be under 160 characters")
+    .optional()
+    .or(z.literal("")),
   urlHandle: z.string().optional().or(z.literal("")),
 });
 

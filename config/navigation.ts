@@ -1,17 +1,17 @@
+import type { Role } from "@/types";
 import {
+  BarChart3,
+  FolderTree,
   LayoutDashboard,
   Package,
-  FolderTree,
-  ShoppingCart,
-  Users,
-  BarChart3,
-  Warehouse,
-  Ticket,
-  Star,
   Settings,
+  ShoppingCart,
+  Star,
+  Ticket,
+  Users,
+  Warehouse,
   type LucideIcon,
 } from "lucide-react";
-import type { Role } from "@/types";
 
 export interface NavItem {
   title: string;
@@ -43,19 +43,19 @@ export const navigation: NavGroup[] = [
     items: [
       {
         title: "Products",
-        href: "/dashboard/products",
+        href: "/products",
         icon: Package,
         roles: ["super_admin", "admin", "seller"],
       },
       {
         title: "Categories",
-        href: "/dashboard/categories",
+        href: "/categories",
         icon: FolderTree,
         roles: ["super_admin", "admin"],
       },
       {
         title: "Inventory",
-        href: "/dashboard/inventory",
+        href: "/inventory",
         icon: Warehouse,
         roles: ["super_admin", "admin", "seller"],
       },
@@ -66,19 +66,19 @@ export const navigation: NavGroup[] = [
     items: [
       {
         title: "Orders",
-        href: "/dashboard/orders",
+        href: "/orders",
         icon: ShoppingCart,
         roles: ["super_admin", "admin", "seller", "support"],
       },
       {
         title: "Customers",
-        href: "/dashboard/customers",
+        href: "/customers",
         icon: Users,
         roles: ["super_admin", "admin", "support"],
       },
       {
         title: "Discounts",
-        href: "/dashboard/discounts",
+        href: "/discounts",
         icon: Ticket,
         roles: ["super_admin", "admin"],
       },
@@ -89,13 +89,13 @@ export const navigation: NavGroup[] = [
     items: [
       {
         title: "Analytics",
-        href: "/dashboard/analytics",
+        href: "/analytics",
         icon: BarChart3,
         roles: ["super_admin", "admin", "seller"],
       },
       {
         title: "Reviews",
-        href: "/dashboard/reviews",
+        href: "/reviews",
         icon: Star,
         roles: ["super_admin", "admin", "support"],
       },
@@ -106,7 +106,7 @@ export const navigation: NavGroup[] = [
     items: [
       {
         title: "Settings",
-        href: "/dashboard/settings",
+        href: "/settings",
         icon: Settings,
         roles: ["super_admin", "admin", "seller"],
       },

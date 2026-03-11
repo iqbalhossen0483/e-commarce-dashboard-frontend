@@ -1,16 +1,73 @@
 "use client";
 
-import { CategoryTree } from "@/components/products/category-tree";
 import { CategoryFormModal } from "@/components/products/category-form-modal";
+import { CategoryTree } from "@/components/products/category-tree";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockCategories } from "@/lib/mock/categories";
 import type { Category } from "@/types";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+
+let nextId = 100;
+
+function addCategoryToTree(
+  categories: Category[],
+  parentId: string | null,
+  newCat: Category,
+): Category[] {
+  if (!parentId) return [...categories, newCat];
+  return categories.map((cat) => {
+    if (cat.id === parentId) {
+      return { ...cat, children: [...(cat.children ?? []), newCat] };
+    }
+    if (cat.children) {
+      return {
+        ...cat,
+        children: addCategoryToTree(cat.children, parentId, newCat),
+      };
+    }
+    return cat;
+  });
+}
+
+function updateCategoryInTree(
+  categories: Category[],
+  id: string,
+  data: { name: string; slug: string; description: string },
+): Category[] {
+  return categories.map((cat) => {
+    if (cat.id === id) {
+      return {
+        ...cat,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+      };
+    }
+    if (cat.children) {
+      return { ...cat, children: updateCategoryInTree(cat.children, id, data) };
+    }
+    return cat;
+  });
+}
+
+function deleteCategoryFromTree(
+  categories: Category[],
+  id: string,
+): Category[] {
+  return categories
+    .filter((cat) => cat.id !== id)
+    .map((cat) => {
+      if (cat.children) {
+        return { ...cat, children: deleteCategoryFromTree(cat.children, id) };
+      }
+      return cat;
+    });
+}
 
 export default function CategoriesPage() {
-  const [categories] = useState(mockCategories);
+  const [categories, setCategories] = useState(mockCategories);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
@@ -21,9 +78,9 @@ export default function CategoriesPage() {
     setModalOpen(true);
   };
 
-  const handleAddChild = (parentId: string) => {
+  const handleAddChild = (pid: string) => {
     setEditingCategory(null);
-    setParentId(parentId);
+    setParentId(pid);
     setModalOpen(true);
   };
 
@@ -33,22 +90,36 @@ export default function CategoriesPage() {
     setModalOpen(true);
   };
 
-  const handleDelete = (category: Category) => {
-    console.log("Delete category:", category.id);
-  };
+  const handleDelete = useCallback((category: Category) => {
+    setCategories((prev) => deleteCategoryFromTree(prev, category.id));
+  }, []);
 
-  const handleSave = (data: {
-    name: string;
-    slug: string;
-    description: string;
-    parentId: string | null;
-  }) => {
-    if (editingCategory) {
-      console.log("Update category:", editingCategory.id, data);
-    } else {
-      console.log("Create category:", data);
-    }
-  };
+  const handleSave = useCallback(
+    (data: {
+      name: string;
+      slug: string;
+      description: string;
+      parentId: string | null;
+    }) => {
+      if (editingCategory) {
+        setCategories((prev) =>
+          updateCategoryInTree(prev, editingCategory.id, data),
+        );
+      } else {
+        const newCat: Category = {
+          id: `cat-${nextId++}`,
+          name: data.name,
+          slug: data.slug,
+          description: data.description,
+          parentId: data.parentId,
+          productCount: 0,
+          order: 0,
+        };
+        setCategories((prev) => addCategoryToTree(prev, data.parentId, newCat));
+      }
+    },
+    [editingCategory],
+  );
 
   return (
     <div className="space-y-6">

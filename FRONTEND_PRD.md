@@ -253,53 +253,56 @@ src/
 
 ## 8. Implementation Phases
 
+> Status reconciled against actual source under `app/`, `components/`, `lib/`, `stores/`, `validators/`, and `types/`. Legend: `[x]` complete, `[~]` partial, `[ ]` not started.
+
 ### Phase 1 — Foundation (Core Setup)
 
 - [x] PRD
-- [ ] Next.js project setup with TypeScript, Tailwind, shadcn/ui
-- [ ] Project structure scaffolding
-- [ ] Theme configuration (light/dark)
-- [ ] Layout: Sidebar, Header, Breadcrumbs
-- [ ] Auth pages (login, forgot password) — UI only
-- [ ] Route protection middleware stub
+- [x] Next.js project setup with TypeScript, Tailwind, shadcn/ui — `package.json` (Next 16, React 19, TS, Tailwind 4)
+- [x] Project structure scaffolding — `app/(auth)`, `app/(dashboard)`, `components/{ui,layout,shared,...}`
+- [x] Theme configuration (light/dark) — `next-themes` + `components/layout/theme-toggle.tsx`
+- [x] Layout: Sidebar, Header, Breadcrumbs — `components/layout/`
+- [x] Auth pages (login, forgot password, reset password) — UI only — `app/(auth)/*`
+- [x] Route protection middleware stub — `middleware.ts`
 
 ### Phase 2 — Dashboard & Products
 
-- [ ] Dashboard home with KPI cards and charts (mock data)
-- [ ] Products list page with DataTable
-- [ ] Product create/edit form (all fields, variants, image upload)
-- [ ] Categories management (tree view, CRUD modal)
+- [x] Dashboard home with KPI cards and charts (mock data) — `app/(dashboard)/dashboard/page.tsx`
+- [x] Products list page with DataTable — `app/(dashboard)/products/page.tsx`
+- [x] Product create/edit form (basic, pricing, organization, media, variants, inventory, SEO) — `app/(dashboard)/products/new/page.tsx`, `[id]/edit/page.tsx`
+- [x] Categories management (tree view, CRUD modal) — `app/(dashboard)/categories/page.tsx`
 
 ### Phase 3 — Orders & Customers
 
-- [ ] Orders list with filters and status badges
-- [ ] Order detail page with timeline and actions
-- [ ] Customers list
-- [ ] Customer detail page
+- [x] Orders list with filters and status badges
+- [x] Order detail page with timeline, customer/shipping, summary, actions, invoice button
+- [x] Customers list
+- [x] Customer detail page (profile, stats, addresses, notes, order history)
 
 ### Phase 4 — Analytics & Inventory
 
-- [ ] Analytics page with all chart types
-- [ ] Date range filtering for analytics
-- [ ] Inventory management page
-- [ ] Low stock alerts
+- [x] Analytics page with all chart types (Sales, Products, Customers, Export tabs)
+- [~] Date range filtering for analytics — partial (revenue chart supports 7d/30d only; no global date range picker)
+- [x] Inventory management page (overview, bulk update, movements, alerts)
+- [x] Low stock alerts widget on dashboard
 
 ### Phase 5 — Remaining Features
 
-- [ ] Discounts & coupons CRUD
-- [ ] Reviews management
-- [ ] Settings pages (general, payments, shipping, taxes, notifications, users)
-- [ ] Global search (Cmd+K)
-- [ ] Notification system
+- [x] Discounts & coupons CRUD
+- [x] Reviews management (list, detail, approve/reject, reply)
+- [x] Settings pages (general, payments, shipping, taxes, notifications, users)
+- [x] Global search (Cmd+K) — `components/shared/search-command.tsx`
+- [x] Notification system — header popover + `app/(dashboard)/notifications/page.tsx`
+- [x] Profile page (general + security tabs) — `app/(dashboard)/profile/page.tsx`
 
 ### Phase 6 — Polish & Optimization
 
-- [ ] Responsive design audit (mobile/tablet)
-- [ ] Accessibility audit (keyboard nav, screen readers, ARIA)
-- [ ] Performance optimization (bundle analysis, lazy loading)
-- [ ] Error boundaries and fallback UI
-- [ ] Loading states and skeleton screens everywhere
-- [ ] E2E tests for critical flows
+- [~] Responsive design audit (mobile/tablet) — uses Tailwind responsive utilities throughout, but no formal audit
+- [~] Accessibility audit (keyboard nav, screen readers, ARIA) — shadcn primitives carry ARIA, but no comprehensive WCAG pass
+- [~] Performance optimization (bundle analysis, lazy loading) — App Router code-splitting only; no virtualization, no bundle audit
+- [ ] Error boundaries and fallback UI — no `error.tsx` segments
+- [~] Loading states and skeleton screens everywhere — `Skeleton` primitive exists but not wired into pages
+- [ ] E2E tests for critical flows — none
 
 ---
 
@@ -320,7 +323,7 @@ src/
 
 | Package               | Purpose                 |
 | --------------------- | ----------------------- |
-| next@15               | Framework               |
+| next@16               | Framework               |
 | react@19              | UI library              |
 | typescript            | Type safety             |
 | tailwindcss@4         | Styling                 |

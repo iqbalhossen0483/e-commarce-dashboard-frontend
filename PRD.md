@@ -21,7 +21,7 @@
 ## 3. User Roles & Permissions
 
 | Role        | Products | Orders | Customers | Analytics | Settings | Users |
-|-------------|----------|--------|-----------|-----------|----------|-------|
+| ----------- | -------- | ------ | --------- | --------- | -------- | ----- |
 | Super Admin | CRUD     | CRUD   | CRUD      | Full      | Full     | CRUD  |
 | Admin       | CRUD     | CRUD   | Read      | Full      | Limited  | Read  |
 | Seller      | Own CRUD | Own    | —         | Own       | Own      | —     |
@@ -32,11 +32,13 @@
 ## 4. Information Architecture & Pages
 
 ### 4.1 Authentication
+
 - `/login` — Email/password login with "remember me"
 - `/forgot-password` — Password reset flow
 - `/reset-password/[token]` — Set new password
 
 ### 4.2 Dashboard Home (`/dashboard`)
+
 - KPI cards: Total Revenue, Orders, Customers, Conversion Rate
 - Revenue chart (line/bar, filterable by 7d/30d/90d/1y)
 - Recent orders table (last 10)
@@ -45,6 +47,7 @@
 - Activity feed / notifications
 
 ### 4.3 Products (`/dashboard/products`)
+
 - **List** — Searchable, filterable (category, status, price range), sortable table with pagination
 - **Create/Edit** (`/dashboard/products/new`, `/dashboard/products/[id]/edit`)
   - Name, slug, description (rich text editor)
@@ -60,11 +63,13 @@
 - **Bulk actions** — Delete, change status, export CSV
 
 ### 4.4 Categories (`/dashboard/categories`)
+
 - Tree view of nested categories
 - Create/Edit modal: name, slug, parent category, image, description
 - Drag-and-drop reordering
 
 ### 4.5 Orders (`/dashboard/orders`)
+
 - **List** — Filterable by status (Pending, Processing, Shipped, Delivered, Cancelled, Refunded), date range, payment status
 - **Detail** (`/dashboard/orders/[id]`)
   - Order summary (items, quantities, prices)
@@ -75,6 +80,7 @@
   - Print invoice / packing slip
 
 ### 4.6 Customers (`/dashboard/customers`)
+
 - **List** — Search by name/email, filter by registration date, total spent
 - **Detail** (`/dashboard/customers/[id]`)
   - Profile info
@@ -84,6 +90,7 @@
   - Notes / tags
 
 ### 4.7 Analytics (`/dashboard/analytics`)
+
 - **Sales Analytics**
   - Revenue over time (line chart)
   - Orders over time (bar chart)
@@ -100,12 +107,14 @@
 - Export reports as CSV/PDF
 
 ### 4.8 Inventory (`/dashboard/inventory`)
+
 - Stock levels overview with color-coded status (In Stock, Low, Out of Stock)
 - Bulk stock update
 - Stock movement history
 - Low stock alerts configuration
 
 ### 4.9 Discounts & Coupons (`/dashboard/discounts`)
+
 - **List** — Active, scheduled, expired tabs
 - **Create/Edit**
   - Code (auto-generate or manual)
@@ -116,11 +125,13 @@
   - Applicable products/categories/customers
 
 ### 4.10 Reviews (`/dashboard/reviews`)
+
 - List with star rating filter, status filter (pending, approved, rejected)
 - Approve/reject actions
 - Reply to review
 
 ### 4.11 Settings (`/dashboard/settings`)
+
 - **General** — Store name, logo, currency, timezone, contact info
 - **Payments** — Payment gateway configuration display
 - **Shipping** — Shipping zones, rates, free shipping thresholds
@@ -133,32 +144,35 @@
 ## 5. Core UI Components
 
 ### 5.1 Layout
+
 - **Sidebar** — Collapsible, icon + label nav, active state, grouped sections
 - **Header** — Breadcrumbs, global search (Cmd+K), notifications bell, user avatar dropdown
 - **Content area** — Max-width container with consistent padding
 
 ### 5.2 Shared Components
-| Component         | Description                                          |
-|--------------------|------------------------------------------------------|
-| DataTable          | Sortable, filterable, paginated table with row select |
-| StatCard           | KPI card with icon, value, trend indicator            |
-| ChartCard          | Wrapper for Recharts with title, date filter          |
-| FileUploader       | Drag-and-drop with preview, progress, reorder         |
-| RichTextEditor     | Lightweight editor (Tiptap) for product descriptions  |
-| ConfirmDialog      | Reusable confirmation modal                           |
-| StatusBadge        | Color-coded status pill                               |
-| EmptyState         | Illustration + message + CTA for empty lists          |
-| SearchCommand      | Cmd+K global search palette                           |
-| DateRangePicker    | Preset + custom date range selector                   |
-| MultiSelect        | Searchable multi-select with tag chips                |
-| Breadcrumbs        | Auto-generated from route hierarchy                   |
-| NotificationToast  | Success/error/warning/info toasts                     |
+
+| Component         | Description                                           |
+| ----------------- | ----------------------------------------------------- |
+| DataTable         | Sortable, filterable, paginated table with row select |
+| StatCard          | KPI card with icon, value, trend indicator            |
+| ChartCard         | Wrapper for Recharts with title, date filter          |
+| FileUploader      | Drag-and-drop with preview, progress, reorder         |
+| RichTextEditor    | Lightweight editor (Tiptap) for product descriptions  |
+| ConfirmDialog     | Reusable confirmation modal                           |
+| StatusBadge       | Color-coded status pill                               |
+| EmptyState        | Illustration + message + CTA for empty lists          |
+| SearchCommand     | Cmd+K global search palette                           |
+| DateRangePicker   | Preset + custom date range selector                   |
+| MultiSelect       | Searchable multi-select with tag chips                |
+| Breadcrumbs       | Auto-generated from route hierarchy                   |
+| NotificationToast | Success/error/warning/info toasts                     |
 
 ---
 
 ## 6. Technical Architecture
 
 ### 6.1 Project Structure
+
 ```
 src/
 ├── app/                        # Next.js App Router
@@ -198,22 +212,26 @@ src/
 ```
 
 ### 6.2 State Management
+
 - **Server state:** TanStack Query for all API data (products, orders, etc.)
 - **Client state:** Zustand for UI state (sidebar collapsed, theme, filters)
 - **Form state:** React Hook Form + Zod validation
 
 ### 6.3 API Integration Pattern
+
 - Centralized API client (`lib/api.ts`) with interceptors for auth tokens
 - TanStack Query hooks per resource (`hooks/use-products.ts`, etc.)
 - Optimistic updates for status changes
 - Mock data layer for development (MSW or static JSON)
 
 ### 6.4 Authentication
+
 - JWT-based auth with access + refresh tokens
 - Middleware-based route protection (`middleware.ts`)
 - Auth store persisted to cookies
 
 ### 6.5 Performance
+
 - Route-based code splitting (automatic with App Router)
 - Image optimization via `next/image`
 - Virtual scrolling for large tables (TanStack Virtual)
@@ -236,6 +254,7 @@ src/
 ## 8. Implementation Phases
 
 ### Phase 1 — Foundation (Core Setup)
+
 - [x] PRD
 - [ ] Next.js project setup with TypeScript, Tailwind, shadcn/ui
 - [ ] Project structure scaffolding
@@ -245,24 +264,28 @@ src/
 - [ ] Route protection middleware stub
 
 ### Phase 2 — Dashboard & Products
+
 - [ ] Dashboard home with KPI cards and charts (mock data)
 - [ ] Products list page with DataTable
 - [ ] Product create/edit form (all fields, variants, image upload)
 - [ ] Categories management (tree view, CRUD modal)
 
 ### Phase 3 — Orders & Customers
+
 - [ ] Orders list with filters and status badges
 - [ ] Order detail page with timeline and actions
 - [ ] Customers list
 - [ ] Customer detail page
 
 ### Phase 4 — Analytics & Inventory
+
 - [ ] Analytics page with all chart types
 - [ ] Date range filtering for analytics
 - [ ] Inventory management page
 - [ ] Low stock alerts
 
 ### Phase 5 — Remaining Features
+
 - [ ] Discounts & coupons CRUD
 - [ ] Reviews management
 - [ ] Settings pages (general, payments, shipping, taxes, notifications, users)
@@ -270,6 +293,7 @@ src/
 - [ ] Notification system
 
 ### Phase 6 — Polish & Optimization
+
 - [ ] Responsive design audit (mobile/tablet)
 - [ ] Accessibility audit (keyboard nav, screen readers, ARIA)
 - [ ] Performance optimization (bundle analysis, lazy loading)
@@ -281,34 +305,33 @@ src/
 
 ## 9. Non-Functional Requirements
 
-| Requirement     | Target                                           |
-|-----------------|--------------------------------------------------|
+| Requirement     | Target                                          |
+| --------------- | ----------------------------------------------- |
 | Performance     | LCP < 2s, FID < 100ms, CLS < 0.1                |
-| Responsiveness  | Fully usable on 360px+ screens                   |
-| Accessibility   | WCAG 2.1 AA compliance                           |
-| Browser Support | Chrome, Firefox, Safari, Edge (last 2 versions)  |
-| Bundle Size     | < 200KB initial JS (gzipped)                     |
-| Type Safety     | Strict TypeScript, no `any`                      |
+| Responsiveness  | Fully usable on 360px+ screens                  |
+| Accessibility   | WCAG 2.1 AA compliance                          |
+| Browser Support | Chrome, Firefox, Safari, Edge (last 2 versions) |
+| Bundle Size     | < 200KB initial JS (gzipped)                    |
+| Type Safety     | Strict TypeScript, no `any`                     |
 
 ---
 
 ## 10. Key Dependencies
 
-| Package             | Purpose                        |
-|---------------------|--------------------------------|
-| next@15             | Framework                      |
-| react@19            | UI library                     |
-| typescript          | Type safety                    |
-| tailwindcss@4       | Styling                        |
-| shadcn/ui           | Component primitives           |
-| @tanstack/react-query | Server state management     |
-| @tanstack/react-table | Headless table               |
-| zustand             | Client state                   |
-| react-hook-form     | Form management                |
-| zod                 | Schema validation              |
-| recharts            | Charts                         |
-| tiptap              | Rich text editor               |
-| next-themes         | Dark mode                      |
-| lucide-react        | Icons                          |
-| date-fns            | Date utilities                 |
-| nuqs                | URL query state                |
+| Package               | Purpose                 |
+| --------------------- | ----------------------- |
+| next@15               | Framework               |
+| react@19              | UI library              |
+| typescript            | Type safety             |
+| tailwindcss@4         | Styling                 |
+| shadcn/ui             | Component primitives    |
+| @tanstack/react-query | Server state management |
+| @tanstack/react-table | Headless table          |
+| zustand               | Client state            |
+| react-hook-form       | Form management         |
+| zod                   | Schema validation       |
+| recharts              | Charts                  |
+| tiptap                | Rich text editor        |
+| next-themes           | Dark mode               |
+| lucide-react          | Icons                   |
+| date-fns              | Date utilities          |

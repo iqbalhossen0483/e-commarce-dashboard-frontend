@@ -11,44 +11,60 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  resetPasswordSchema,
+  type ResetPasswordForm,
+} from "@/validators/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v4";
+import { toast } from "sonner";
 
-const resetSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type ResetForm = z.infer<typeof resetSchema>;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const params = useParams<{ token: string }>();
+  const token = params?.token ?? "";
   const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ResetForm>({
-    resolver: zodResolver(resetSchema),
+  } = useForm<ResetPasswordForm>({
+    resolver: zodResolver(resetPasswordSchema),
   });
 
-  const onSubmit = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
+  const resetMutation = useMutation({
+    mutationFn: async (data: ResetPasswordForm) => {
+      const res = await fetch(`${API_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password: data.password }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Reset failed — link may be expired");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Password reset. Please sign in.");
       router.push("/login");
-      setIsLoading(false);
-    }, 1000);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const onSubmit = (data: ResetPasswordForm) => {
+    if (!token) {
+      toast.error("Invalid reset link");
+      return;
+    }
+    resetMutation.mutate(data);
   };
 
   return (
@@ -104,8 +120,12 @@ export default function ResetPasswordPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Resetting..." : "Reset password"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={resetMutation.isPending}
+          >
+            {resetMutation.isPending ? "Resetting..." : "Reset password"}
           </Button>
         </CardFooter>
       </form>

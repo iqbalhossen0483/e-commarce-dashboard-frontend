@@ -7,9 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getInitials } from "@/lib/utils";
-import { useAuthStore } from "@/stores/auth-store";
-import { Camera, Check, Eye, EyeOff, Key, Save, Shield } from "lucide-react";
-import { useState } from "react";
+import type { User } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Camera, Eye, EyeOff, Key, Save, Shield } from "lucide-react";
+import { getSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 const roleLabels: Record<string, string> = {
   super_admin: "Super Admin",
@@ -18,19 +24,77 @@ const roleLabels: Record<string, string> = {
   support: "Support",
 };
 
+interface MeResponse {
+  id: number | string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: User["role"];
+  isActive: boolean;
+  phone: string | null;
+  bio: string | null;
+  lastActiveAt: string | null;
+  createdAt: string;
+}
+
+function toUser(me: MeResponse): User {
+  return { ...me, id: String(me.id) };
+}
+
+async function authedFetch(path: string, init?: RequestInit) {
+  const session = await getSession();
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(session?.accessToken
+        ? { Authorization: `Bearer ${session.accessToken}` }
+        : {}),
+      ...init?.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const msg = Array.isArray(body.message)
+      ? body.message.join(", ")
+      : body.message || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+  return res;
+}
+
 export default function ProfilePage() {
-  const { user, updateUser } = useAuthStore();
-  const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "security">(
-    "general"
-  );
+  const queryClient = useQueryClient();
+
+  const meQuery = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const res = await authedFetch("/auth/me");
+      const data = (await res.json()) as MeResponse;
+      return toUser(data);
+    },
+  });
+  const user = meQuery.data;
+
+  const [activeTab, setActiveTab] = useState<"general" | "security">("general");
 
   const [form, setForm] = useState({
-    name: user?.name ?? "Admin User",
-    email: user?.email ?? "admin@example.com",
+    name: "",
+    email: "",
     phone: "",
     bio: "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name,
+        email: user.email,
+        phone: user.phone ?? "",
+        bio: user.bio ?? "",
+      });
+    }
+  }, [user]);
 
   const [passwordForm, setPasswordForm] = useState({
     current: "",
@@ -43,24 +107,43 @@ export default function ProfilePage() {
     confirm: false,
   });
 
-  const handleSaveProfile = () => {
-    updateUser({ name: form.name, email: form.email });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  const updateMeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await authedFetch("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone === "" ? null : form.phone,
+          bio: form.bio === "" ? null : form.bio,
+        }),
+      });
+      const data = (await res.json()) as MeResponse;
+      return toUser(data);
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["me"], updated);
+      toast.success("Profile saved");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  const handleChangePassword = () => {
-    if (
-      !passwordForm.current ||
-      !passwordForm.newPassword ||
-      passwordForm.newPassword !== passwordForm.confirm
-    )
-      return;
-    console.log("Password changed");
-    setPasswordForm({ current: "", newPassword: "", confirm: "" });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      await authedFetch("/auth/me/password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+    },
+    onSuccess: () => {
+      setPasswordForm({ current: "", newPassword: "", confirm: "" });
+      toast.success("Password updated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="space-y-6">
@@ -79,9 +162,12 @@ export default function ProfilePage() {
             <CardContent className="flex flex-col items-center p-6">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarImage
+                    src={user?.avatar ?? undefined}
+                    alt={user?.name}
+                  />
                   <AvatarFallback className="text-2xl">
-                    {user ? getInitials(user.name) : "AD"}
+                    {user ? getInitials(user.name) : "..."}
                   </AvatarFallback>
                 </Avatar>
                 <button className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
@@ -89,14 +175,16 @@ export default function ProfilePage() {
                 </button>
               </div>
               <h3 className="mt-3 text-sm font-semibold">
-                {user?.name ?? "Admin User"}
+                {user?.name ?? "—"}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {user?.email ?? "admin@example.com"}
+                {user?.email ?? "—"}
               </p>
-              <Badge variant="secondary" className="mt-2 text-xs">
-                {roleLabels[user?.role ?? "admin"]}
-              </Badge>
+              {user && (
+                <Badge variant="secondary" className="mt-2 text-xs">
+                  {roleLabels[user.role] ?? user.role}
+                </Badge>
+              )}
             </CardContent>
           </Card>
 
@@ -189,15 +277,12 @@ export default function ProfilePage() {
               </Card>
 
               <div className="flex items-center justify-end gap-3">
-                {saved && (
-                  <span className="flex items-center gap-1 text-sm text-success">
-                    <Check className="h-4 w-4" />
-                    Saved
-                  </span>
-                )}
-                <Button onClick={handleSaveProfile}>
+                <Button
+                  onClick={() => updateMeMutation.mutate()}
+                  disabled={updateMeMutation.isPending || !user}
+                >
                   <Save className="mr-1.5 h-4 w-4" />
-                  Save Changes
+                  {updateMeMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </>
@@ -281,18 +366,22 @@ export default function ProfilePage() {
                 <CardContent className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Role</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {roleLabels[user?.role ?? "admin"]}
-                    </Badge>
+                    {user && (
+                      <Badge variant="secondary" className="text-xs">
+                        {roleLabels[user.role] ?? user.role}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status</span>
-                    <Badge
-                      variant={user?.isActive ? "default" : "outline"}
-                      className="text-xs"
-                    >
-                      {user?.isActive ? "Active" : "Inactive"}
-                    </Badge>
+                    {user && (
+                      <Badge
+                        variant={user.isActive ? "default" : "outline"}
+                        className="text-xs"
+                      >
+                        {user.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Member since</span>
@@ -309,22 +398,19 @@ export default function ProfilePage() {
               </Card>
 
               <div className="flex items-center justify-end gap-3">
-                {saved && (
-                  <span className="flex items-center gap-1 text-sm text-success">
-                    <Check className="h-4 w-4" />
-                    Updated
-                  </span>
-                )}
                 <Button
-                  onClick={handleChangePassword}
+                  onClick={() => changePasswordMutation.mutate()}
                   disabled={
+                    changePasswordMutation.isPending ||
                     !passwordForm.current ||
                     !passwordForm.newPassword ||
                     passwordForm.newPassword !== passwordForm.confirm
                   }
                 >
                   <Key className="mr-1.5 h-4 w-4" />
-                  Update Password
+                  {changePasswordMutation.isPending
+                    ? "Updating..."
+                    : "Update Password"}
                 </Button>
               </div>
             </>

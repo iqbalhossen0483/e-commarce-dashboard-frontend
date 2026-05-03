@@ -20,12 +20,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "./breadcrumbs";
 import { ThemeToggle } from "./theme-toggle";
-import { useAuthStore } from "@/stores/auth-store";
 import { getInitials, cn } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
+import { getSession, signOut, useSession } from "next-auth/react";
 import { mockActivityFeed } from "@/lib/mock/analytics";
 import type { ActivityItem } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SearchCommand } from "@/components/shared/search-command";
 
@@ -44,7 +45,24 @@ const typeColor = {
 };
 
 export function Header() {
-  const { user, logout } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+      const session = await getSession();
+      await fetch(`${apiUrl}/auth/logout`, {
+        method: "POST",
+        headers: session?.accessToken
+          ? { Authorization: `Bearer ${session.accessToken}` }
+          : undefined,
+      }).catch(() => undefined);
+      await signOut({ callbackUrl: "/login" });
+    },
+  });
+
   const [notifications, setNotifications] = useState<ActivityItem[]>(mockActivityFeed);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
@@ -184,9 +202,12 @@ export function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger className="relative h-9 w-9 rounded-full cursor-pointer">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
+              <AvatarImage
+                src={user?.image ?? undefined}
+                alt={user?.name ?? undefined}
+              />
               <AvatarFallback>
-                {user ? getInitials(user.name) : "AD"}
+                {user?.name ? getInitials(user.name) : "AD"}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -217,9 +238,12 @@ export function Header() {
               </DropdownMenuItem>
             </Link>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+            >
               <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              {logoutMutation.isPending ? "Signing out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

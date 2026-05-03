@@ -11,38 +11,45 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordForm,
+} from "@/validators/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v4";
+import { toast } from "sonner";
 
-const forgotSchema = z.object({
-  email: z.email("Please enter a valid email"),
-});
-
-type ForgotForm = z.infer<typeof forgotSchema>;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 export default function ForgotPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ForgotForm>({
-    resolver: zodResolver(forgotSchema),
+  } = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setSubmitted(true);
-      setIsLoading(false);
-    }, 1000);
-  };
+  const forgotMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordForm) => {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Could not send reset link");
+      }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const submitted = forgotMutation.isSuccess;
 
   if (submitted) {
     return (
@@ -76,7 +83,7 @@ export default function ForgotPasswordPage() {
           Enter your email and we&apos;ll send you a reset link.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit((data) => forgotMutation.mutate(data))}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -92,8 +99,12 @@ export default function ForgotPasswordPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Sending..." : "Send reset link"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={forgotMutation.isPending}
+          >
+            {forgotMutation.isPending ? "Sending..." : "Send reset link"}
           </Button>
           <Link
             href="/login"

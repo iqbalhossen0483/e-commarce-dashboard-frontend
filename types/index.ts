@@ -5,10 +5,12 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar?: string;
+  avatar?: string | null;
   role: Role;
   isActive: boolean;
-  lastActiveAt: string;
+  phone?: string | null;
+  bio?: string | null;
+  lastActiveAt: string | null;
   createdAt: string;
 }
 

@@ -11,20 +11,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuthStore } from "@/stores/auth-store";
 import { loginSchema, type LoginForm } from "@/validators/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff, Package2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -35,26 +35,29 @@ export default function LoginPage() {
     defaultValues: { email: "", password: "", rememberMe: false },
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    // Mock login
-    setTimeout(() => {
-      login(
-        {
-          id: "1",
-          name: "Admin User",
-          email: data.email,
-          role: "super_admin",
-          isActive: true,
-          lastActiveAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        },
-        "mock-jwt-token",
-      );
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginForm) => {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe ? "true" : "false",
+        redirect: false,
+      });
+      if (result?.error) {
+        throw new Error("Invalid email or password");
+      }
+      return result;
+    },
+    onSuccess: () => {
       router.push("/dashboard");
-      setIsLoading(false);
-    }, 1000);
-  };
+      router.refresh();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Invalid email or password");
+    },
+  });
+
+  const onSubmit = (data: LoginForm) => loginMutation.mutate(data);
 
   return (
     <Card>
@@ -126,8 +129,12 @@ export default function LoginPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
+          >
+            {loginMutation.isPending ? "Signing in..." : "Sign in"}
           </Button>
         </CardFooter>
       </form>
